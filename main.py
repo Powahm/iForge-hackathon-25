@@ -1,6 +1,3 @@
-# To run this code you need to install the following dependencies:
-# pip install google-genai speechrecognition gtts pyserial
-
 import base64
 from google import genai
 from google.genai import types
@@ -49,29 +46,20 @@ def clean_google_response(response):
     return re.sub(r'[^\w\s]', '', response)
 
 def send_to_google_api(user_input):
-    response = client.models.generate_content(
-        model="gemini-2.0-flash",
-        contents=user_input,
-    )
-    cleaned_response = clean_google_response(response.text)
-    return cleaned_response
-
-
-    model = "gemini-2.5-flash-preview-04-17"
-    contents = [
-        types.Content(
-            role="user",
-            parts=[
-                types.Part.from_text(text="""INSERT_INPUT_HERE"""),
-            ],
-        ),
-    ]
-    generate_content_config = types.GenerateContentConfig(
-        response_mime_type="text/plain",
-        system_instruction=[
-            types.Part.from_text(text="""Give concise answers"""),
-        ],
-    )
+    try:
+        response = client.models.generate_content(
+            model="gemini-2.0-flash",
+            contents=user_input,
+        )
+        if response and hasattr(response, 'text'):
+            cleaned_response = clean_google_response(response.text)
+            return cleaned_response
+        else:
+            print("Invalid response from Google API.")
+            return "Sorry, I couldn't process your request."
+    except Exception as e:
+        print(f"Error communicating with Google API: {e}")
+        return "Sorry, there was an error processing your request."
 
 def text_to_speech(text):
     tts = gTTS(text)
@@ -79,7 +67,8 @@ def text_to_speech(text):
     print("Response saved as response.mp3")
 
 def send_to_arduino(message):
-    arduino.write(message.encode())
+    formatted_message = f'"{message}"'  # Format the message as a string enclosed in double quotes
+    arduino.write(formatted_message.encode())
     time.sleep(2)  # Wait for Arduino to process
     response = arduino.readline().decode('utf-8').strip()
     print(f"Arduino response: {response}")
@@ -87,8 +76,10 @@ def send_to_arduino(message):
 
 if __name__ == "__main__":
     user_input = record_voice()
+    instructs = "The user input should be about rotating the fan. Based on the user's input, choose one of the following options that best matches: 1. fan on, 2. fan off, 3. left, 4. right, 5. center, 6. low, 7. medium, 8. high, 9. full left, 10. full right, 11. stop sweep, 12. sweep"
+
     if user_input:
-        google_response = send_to_google_api(user_input)
+        google_response = send_to_google_api(user_input, instruction=instructs)
         print(f"Google API Response: {google_response}")    
         arduino_response = send_to_arduino(google_response)
         text_to_speech(google_response)
