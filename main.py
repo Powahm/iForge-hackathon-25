@@ -36,7 +36,7 @@ def generate():
         ),
     ]
     generate_content_config = types.GenerateContentConfig(
-        response_mime_type="text/plain",
+        response_mime_type="text/plain",`
         system_instruction=[
             types.Part.from_text(text="""Give concise answers"""),
         ],
