@@ -10,7 +10,7 @@ import wave
 import re
 
 # Initialize serial communication with Arduino
-arduino = serial.Serial('COM3', 9600)  # Replace 'COM3' with your Arduino's port
+arduino = serial.Serial('COM7', 9600)  # Replace 'COM3' with your Arduino's port
 
 client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
 
@@ -20,9 +20,9 @@ def record_voice():
         print("Listening...")
         while True:
             try:
-                audio = recognizer.listen(source, timeout=5)  # Adjusted to stop recording when the user stops talking
                 print("Recognizing...")
-                
+                audio = recognizer.listen(source, timeout=5)  # Adjusted to stop recording when the user stops talking
+            
                 # Save the audio to a file
                 '''
                 with open("user_input.wav", "wb") as audio_file:
@@ -69,19 +69,24 @@ def text_to_speech(text):
     print("Response saved as response.mp3")
 
 def send_to_arduino(message):
-    formatted_message = f'"{message}"'  # Format the message as a string enclosed in double quotes
-    arduino.write(formatted_message.encode())
+    formatted_message = f'{message.strip()}'  # Ensure the message is trimmed
+    print(f"Sending to Arduino: {formatted_message}")  # Print the message in the terminal
+    arduino.write(formatted_message.encode())  # Send the message to Arduino
     time.sleep(2)  # Wait for Arduino to process
-    response = arduino.readline().decode('utf-8').strip()
-    print(f"Arduino response: {response}")
+    response = arduino.readline().decode('utf-8').strip()  # Read the response from Arduino
+    print(f"Arduino response: {response}")  # Print the response in the terminal
     return response
 
 if __name__ == "__main__":
-    user_input = record_voice()
-    instructs = "Instructions: The user input should be about rotating the fan. Based on the user's input, choose one of the following options that best matches: 1. fan on, 2. fan off, 3. left, 4. right, 5. center, 6. low, 7. medium, 8. high, 9. full left, 10. full right, 11. stop sweep, 12. sweep. This is the user input: "
+    while True:
+        user_input = record_voice()
+        if user_input and user_input.lower() == "exit":
+            print("Exiting program...")
+            break
 
-    if user_input:
-        google_response = send_to_google_api(user_input, instruction=instructs)
-        print(f"Google API Response: {google_response}")    
-        arduino_response = send_to_arduino(google_response)
-        text_to_speech(google_response)
+        instructs = "Instructions: The user input should be about rotating the fan. Based on the user's input, choose one of the following options that best matches and do not include the number: 1. fan on, 2. fan off, 3. left, 4. right, 5. center, 6. low, 7. medium, 8. high, 9. full left, 10. full right, 11. stop sweep, 12. sweep. This is the user input: "
+
+        if user_input:
+            google_response = send_to_google_api(user_input, instruction=instructs)
+            print(f"Google API Response: {google_response}")    
+            arduino_response = send_to_arduino(google_response)

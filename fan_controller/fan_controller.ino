@@ -54,8 +54,10 @@ void setup() {
 void loop() {
   // Check for serial input
   if (Serial.available()) {
-    String command = Serial.readStringUntil('\n');
+    String command = Serial.readStringUntil('\n'); // Read the input string
     command.trim(); // Clean whitespace
+    Serial.print("Debug: Received command: ");
+    Serial.println(command); // Debugging output to confirm the exact command received
 
     // Interpret command
     if (command.equalsIgnoreCase("fan on")) {
@@ -82,9 +84,12 @@ void loop() {
       startSweep();
     } else if (command.equalsIgnoreCase("stop sweep")) {
       stopSweep();
+    } else {
+      Serial.println("Unknown command"); // Handle unknown commands
     }
   }
-    // Handle sweeping
+
+  // Handle sweeping
   if (sweeping) {
     unsigned long currentTime = millis();
     if (currentTime - lastSweepTime >= sweepDelay) {
