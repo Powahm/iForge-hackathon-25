@@ -9,6 +9,7 @@ import speech_recognition as sr
 from gtts import gTTS
 import serial
 import time
+import wave
 
 # Initialize serial communication with Arduino
 arduino = serial.Serial('COM3', 9600)  # Replace 'COM3' with your Arduino's port
@@ -21,10 +22,19 @@ def record_voice():
         print("Listening...")
         while True:
             try:
-                audio = recognizer.listen(source, timeout=5, phrase_time_limit=5)
+                audio = recognizer.listen(source, timeout=5, phrase_time_limit=5)  # Increased phrase_time_limit to 5 seconds
                 print("Recognizing...")
+                
+                # Save the audio to a file
+                '''
+                with open("user_input.wav", "wb") as audio_file:
+                    audio_file.write(audio.get_wav_data())
+                print("Audio saved as user_input.wav")
+                '''
+
                 text = recognizer.recognize_google(audio)
                 print(f"Understood: {text}")
+                return text
             except sr.UnknownValueError:
                 print("Sorry, could not understand the audio.")
             except sr.RequestError as e:
@@ -57,5 +67,6 @@ if __name__ == "__main__":
     if user_input:
         google_response = send_to_google_api(user_input)
         print(f"Google API Response: {google_response}")
-        arduino_response = send_to_arduino(google_response)
-        text_to_speech(arduino_response)
+        
+        #arduino_response = send_to_arduino(google_response)
+        #text_to_speech(arduino_response)
