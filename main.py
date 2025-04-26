@@ -56,6 +56,23 @@ def send_to_google_api(user_input):
     cleaned_response = clean_google_response(response.text)
     return cleaned_response
 
+
+    model = "gemini-2.5-flash-preview-04-17"
+    contents = [
+        types.Content(
+            role="user",
+            parts=[
+                types.Part.from_text(text="""INSERT_INPUT_HERE"""),
+            ],
+        ),
+    ]
+    generate_content_config = types.GenerateContentConfig(
+        response_mime_type="text/plain",
+        system_instruction=[
+            types.Part.from_text(text="""Give concise answers"""),
+        ],
+    )
+
 def text_to_speech(text):
     tts = gTTS(text)
     tts.save("response.mp3")
