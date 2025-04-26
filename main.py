@@ -10,6 +10,7 @@ from gtts import gTTS
 import serial
 import time
 import wave
+import re
 
 # Initialize serial communication with Arduino
 arduino = serial.Serial('COM3', 9600)  # Replace 'COM3' with your Arduino's port
@@ -22,7 +23,7 @@ def record_voice():
         print("Listening...")
         while True:
             try:
-                audio = recognizer.listen(source, timeout=5, phrase_time_limit=5)  # Increased phrase_time_limit to 5 seconds
+                audio = recognizer.listen(source, timeout=5)  # Adjusted to stop recording when the user stops talking
                 print("Recognizing...")
                 
                 # Save the audio to a file
@@ -43,12 +44,17 @@ def record_voice():
                 print("Listening timed out.")
                 break
 
+def clean_google_response(response):
+    # Remove asterisks and other special characters
+    return re.sub(r'[^\w\s]', '', response)
+
 def send_to_google_api(user_input):
     response = client.models.generate_content(
         model="gemini-2.0-flash",
         contents=user_input,
     )
-    return response.text
+    cleaned_response = clean_google_response(response.text)
+    return cleaned_response
 
 def text_to_speech(text):
     tts = gTTS(text)
@@ -66,7 +72,6 @@ if __name__ == "__main__":
     user_input = record_voice()
     if user_input:
         google_response = send_to_google_api(user_input)
-        print(f"Google API Response: {google_response}")
-        
-        #arduino_response = send_to_arduino(google_response)
-        #text_to_speech(arduino_response)
+        print(f"Google API Response: {google_response}")    
+        arduino_response = send_to_arduino(google_response)
+        text_to_speech(google_response)
