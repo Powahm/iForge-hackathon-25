@@ -2,3 +2,5 @@ google-genai
 SpeechRecognition
 gtts
 pyserial
+pyaudio
+python-dotenv
