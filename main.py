@@ -17,12 +17,12 @@ client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
 def record_voice():
     recognizer = sr.Recognizer()
     with sr.Microphone() as source:
-        print("Listening...")
+        print("Starting ...")
         while True:
             try:
-                print("Recognizing...")
+                print("Listening...")
                 audio = recognizer.listen(source, timeout=5)  # Adjusted to stop recording when the user stops talking
-            
+                print("Recognizing...")
                 # Save the audio to a file
                 '''
                 with open("user_input.wav", "wb") as audio_file:
