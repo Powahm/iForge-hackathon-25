@@ -45,11 +45,13 @@ def clean_google_response(response):
     # Remove asterisks and other special characters
     return re.sub(r'[^\w\s]', '', response)
 
-def send_to_google_api(user_input):
+def send_to_google_api(user_input, instruction):
     try:
+        # Combine the instruction with the user input
+        combined_input = f"{instruction}\n\n{user_input}"
         response = client.models.generate_content(
             model="gemini-2.0-flash",
-            contents=user_input,
+            contents=combined_input  # Pass the combined input here
         )
         if response and hasattr(response, 'text'):
             cleaned_response = clean_google_response(response.text)
@@ -76,7 +78,7 @@ def send_to_arduino(message):
 
 if __name__ == "__main__":
     user_input = record_voice()
-    instructs = "The user input should be about rotating the fan. Based on the user's input, choose one of the following options that best matches: 1. fan on, 2. fan off, 3. left, 4. right, 5. center, 6. low, 7. medium, 8. high, 9. full left, 10. full right, 11. stop sweep, 12. sweep"
+    instructs = "Instructions: The user input should be about rotating the fan. Based on the user's input, choose one of the following options that best matches: 1. fan on, 2. fan off, 3. left, 4. right, 5. center, 6. low, 7. medium, 8. high, 9. full left, 10. full right, 11. stop sweep, 12. sweep. This is the user input: "
 
     if user_input:
         google_response = send_to_google_api(user_input, instruction=instructs)
